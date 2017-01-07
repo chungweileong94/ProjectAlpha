@@ -1,0 +1,107 @@
+﻿<Page
+    x:Class="ProjectAlpha.Views.WeatherPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ProjectAlpha.Views"
+    xmlns:converters="using:ProjectAlpha.Converters"
+    xmlns:models="using:ProjectAlpha.Models"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition>
+                <ContinuumNavigationTransitionInfo/>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+    <Page.Resources>
+        <converters:ObjToVisibilityConverter x:Key="ObjToVisibilityConverter"/>
+        <converters:BoolToBoolConverter x:Key="BoolToBoolConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StatusCodeToVisibilityConverter x:Key="StatusCodeToVisibilityConverter"/>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="TopCommandBarVisualStateGroup">
+                <VisualState x:Name="LargeWidth">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="720"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="SmallWidth">
+                    <VisualState.Setters>
+                        <Setter Target="TopCommandBar.(UIElement.Visibility)" Value="Visible"/>
+                        <Setter Target="TopCommandBar.(UIElement.Margin)" Value="48,0,0,0"/>
+                    </VisualState.Setters>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid x:Name="ContentGrid" Grid.Row="1">
+            <Image 
+                x:Name="BackgroundImage"
+                Stretch="UniformToFill" 
+                Source="{x:Bind ViewModel.CurrentWeather.weather.backgroundUrl, Mode=OneWay}"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ImageOpened="BackgroundImage_ImageOpened">
+                <Image.RenderTransform>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                </Image.RenderTransform>
+            </Image>
+
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"  Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=0}" ViewChanged="ScrollViewer_ViewChanged">
+                <ContentPresenter
+                    x:Name="MainContentPresenter"
+                    Content="{x:Bind ViewModel.CurrentWeather, Mode=OneWay}" 
+                    Visibility="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToVisibilityConverter}}"
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch">
+                    <ContentPresenter.ContentTemplate>
+                        <DataTemplate x:DataType="models:OpenWeatherObj">
+                            <local:WeatherTemplate HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </ContentPresenter.ContentTemplate>
+                </ContentPresenter>
+            </ScrollViewer>
+
+            <Grid Opacity=".7" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=1}">
+                <StackPanel x:Name="permissionError" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=1}">
+                    <TextBlock Text="&#xE8D7;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Location permission denied" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                    <Button Content="Change Permission" HorizontalAlignment="Center" Click="LocationPermissionButton_Click"/>
+                </StackPanel>
+
+                <StackPanel x:Name="connectionError" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=2}">
+                    <TextBlock Text="&#xE8CD;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No/Slow internet connection" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                    <Button Content="Try Again" HorizontalAlignment="Center" Click="{x:Bind ViewModel.LoadCurrentWeather}"/>
+                </StackPanel>
+            </Grid>
+
+            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Width="48" Height="48" Foreground="White"/>
+        </Grid>
+
+        <CommandBar x:Name="TopCommandBar" Grid.RowSpan="2" Style="{StaticResource TopCommandBarStyle}">
+            <CommandBar.Content>
+                <Grid Height="48">
+                    <TextBlock Text="Weather" Style="{StaticResource TopCommandBarTitleTextBlockStyle}"/>
+                </Grid>
+            </CommandBar.Content>
+
+            <AppBarButton Icon="Refresh" Label="Refresh" IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToBoolConverter}, ConverterParameter=1}" Click="{x:Bind ViewModel.LoadCurrentWeather}"/>
+        </CommandBar>
+    </Grid>
+</Page>

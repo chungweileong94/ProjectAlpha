@@ -1,0 +1,186 @@
+﻿<Page
+    x:Class="ProjectAlpha.Views.SearchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ProjectAlpha.Views"
+    xmlns:models="using:ProjectAlpha.Models"
+    xmlns:converters="using:ProjectAlpha.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" SizeChanged="Page_SizeChanged">
+
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition>
+                <ContinuumNavigationTransitionInfo/>
+            </NavigationThemeTransition>
+        </TransitionCollection>
+    </Page.Transitions>
+
+    <Page.Resources>
+        <converters:VisibilityInvertConverter x:Key="VisibilityInvertConverter"/>
+        <converters:StatusCodeToVisibilityConverter x:Key="StatusCodeToVisibilityConverter"/>
+        <converters:ObjToVisibilityConverter x:Key="ObjToVisibilityConverter"/>
+        <converters:BoolToBoolConverter x:Key="BoolToBoolConverter"/>
+        <converters:ObjToBoolConverter x:Key="ObjToBoolConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <Flyout x:Name="LocationChangeFlyout">
+            <StackPanel Orientation="Horizontal">
+                <SymbolIcon Symbol="Accept"/>
+                <TextBlock Text="Default location changed" Margin="16,0"/>
+            </StackPanel>
+        </Flyout>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="TopCommandBarVisualStateGroup">
+                <VisualState x:Name="LargeWidth">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="720"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="SmallWidth">
+                    <VisualState.Setters>
+                        <Setter Target="TopCommandBar.(UIElement.Margin)" Value="48,0,0,0"/>
+                        <Setter Target="TopCommand.(UIElement.Visibility)" Value="Collapsed"/>
+                        <Setter Target="SearchBox.(Grid.Column)" Value="0"/>
+                        <Setter Target="SearchBox.(Grid.ColumnSpan)" Value="2"/>
+                        <Setter Target="BottomCommandBar.(UIElement.Visibility)" Value="Visible"/>
+                        <Setter Target="MainContentPresenter.(UIElement.Margin)" Value="0,0,0,48"/>
+                        <Setter Target="MessagePanel.(UIElement.Margin)" Value="0,0,0,48"/>
+                    </VisualState.Setters>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid x:Name="ContentGrid" Grid.Row="1" Grid.RowSpan="2">
+            <Image 
+                x:Name="BackgroundImage"
+                Stretch="UniformToFill" 
+                Source="{x:Bind ViewModel.CurrentWeather.weather.backgroundUrl, Mode=OneWay}"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ImageOpened="BackgroundImage_ImageOpened">
+                <Image.RenderTransform>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                </Image.RenderTransform>
+            </Image>
+
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=0}" ViewChanged="ScrollViewer_ViewChanged">
+                <ContentPresenter
+                    x:Name="MainContentPresenter"
+                    Content="{x:Bind ViewModel.CurrentWeather, Mode=OneWay}" 
+                    Visibility="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToVisibilityConverter}}"
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch">
+                    <ContentPresenter.ContentTemplate>
+                        <DataTemplate x:DataType="models:OpenWeatherObj">
+                            <local:WeatherTemplate HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </ContentPresenter.ContentTemplate>
+                </ContentPresenter>
+            </ScrollViewer>
+
+            <Grid x:Name="MessagePanel" Opacity=".7" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=1}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=1}">
+                    <TextBlock Text="&#xE8CD;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No/Slow internet connection" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                    <Button Content="Try Again" HorizontalAlignment="Center" Click="{x:Bind ViewModel.LoadCurrentWeather}"/>
+                </StackPanel>
+
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=2}">
+                    <TextBlock Text="&#xE8F1;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Not found" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                </StackPanel>
+
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=3}">
+                    <TextBlock Text="&#xE8CD;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No/Slow internet connection" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                </StackPanel>
+
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{x:Bind ViewModel.Status, Mode=OneWay, Converter={StaticResource StatusCodeToVisibilityConverter}, ConverterParameter=10}">
+                    <TextBlock Text="&#xE707;" FontFamily="Segoe MDL2 Assets" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Search a location" FontSize="18" TextWrapping="WrapWholeWords" TextAlignment="Center" Margin="20,8"/>
+                </StackPanel>
+            </Grid>
+
+            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" Width="48" Height="48" Foreground="White"/>
+        </Grid>
+        
+        <Grid x:Name="TopCommandBar" Grid.RowSpan="2" RequestedTheme="Dark" Background="#202020" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <CommandBar x:Name="TopCommand" Style="{StaticResource TopCommandBarStyle}">
+                <CommandBar.Content>
+                    <Grid Height="48">
+                        <TextBlock Text="Search" Style="{StaticResource TopCommandBarTitleTextBlockStyle}"/>
+                    </Grid>
+                </CommandBar.Content>
+
+                <AppBarButton 
+                    Icon="Tag" 
+                    Label=" Set as default"
+                    FlyoutBase.AttachedFlyout="{StaticResource LocationChangeFlyout}"
+                    IsEnabled="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToBoolConverter}}"
+                    Click="SetAsDefaultButton_Click"/>
+                <AppBarButton 
+                    Icon="Refresh" 
+                    Label="Refresh"
+                    IsEnabled="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToBoolConverter}}"
+                    Click="{x:Bind ViewModel.LoadCurrentWeather}"/>
+            </CommandBar>
+
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Grid.Column="1"
+                PlaceholderText="Search Location"
+                QueryIcon="Find"
+                Width="248"
+                Height="45"
+                Margin="1.5"
+                Text="{x:Bind ViewModel.QueryString, Mode=TwoWay}"
+                ItemsSource="{x:Bind ViewModel.QueryWeather, Mode=OneWay}"
+                Style="{StaticResource SearchAutoSuggestBoxStyle}"
+                QuerySubmitted="{x:Bind ViewModel.SearchLocation}"
+                SuggestionChosen="{x:Bind ViewModel.SelectLocation}"
+                Loaded="SearchBox_Loaded">
+                <AutoSuggestBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:OpenWeatherObj">
+                        <TextBlock>
+                            <Run Text="{x:Bind city.name}"/>
+                            <Run Text=", "/>
+                            <Run Text="{x:Bind city.country}"/>
+                        </TextBlock>
+                    </DataTemplate>
+                </AutoSuggestBox.ItemTemplate>
+            </AutoSuggestBox>
+        </Grid>
+
+        <CommandBar x:Name="BottomCommandBar" Grid.Row="2" Background="#CC202020" Visibility="Collapsed">
+            <AppBarButton 
+                Icon="Tag" 
+                Label=" Set as default"
+                FlyoutBase.AttachedFlyout="{StaticResource LocationChangeFlyout}"
+                IsEnabled="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToBoolConverter}}"
+                Click="SetAsDefaultButton_Click"/>
+            <AppBarButton 
+                Icon="Refresh" 
+                Label="Refresh"
+                IsEnabled="{x:Bind ViewModel.CurrentWeather, Mode=OneWay, Converter={StaticResource ObjToBoolConverter}}"
+                Click="{x:Bind ViewModel.LoadCurrentWeather}"/>
+        </CommandBar>
+    </Grid>
+</Page>

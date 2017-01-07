@@ -1,0 +1,102 @@
+﻿<Page
+    x:Class="ProjectAlpha.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ProjectAlpha.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="SplitViewVisualStateGroup">
+                <VisualState x:Name="LargeWidth">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="720"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="SmallWidth">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="MainSplitView.(SplitView.DisplayMode)" Value="Overlay"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <SplitView 
+            x:Name="MainSplitView"
+            DisplayMode="CompactOverlay" 
+            PaneBackground="#202020"
+            Margin="0,48,0,0">
+            <SplitView.Pane>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Hidden">
+                        <StackPanel>
+                            <RadioButton 
+                                Content="Weather"
+                                Tag="&#xE80F;" 
+                                IsChecked="True"
+                                GroupName="Nav"
+                                Style="{StaticResource NavRadioButtonStyle}"
+                                Click="NavRadioButton_Click"/>
+                            <RadioButton 
+                                Content="Search"
+                                Tag="&#xE71E;" 
+                                IsChecked="false"
+                                GroupName="Nav"
+                                Style="{StaticResource NavRadioButtonStyle}"
+                                Click="NavRadioButton_Click"/>
+                            <RadioButton 
+                                Content="Devices"
+                                Tag="&#xE90F;" 
+                                GroupName="Nav"
+                                Style="{StaticResource NavRadioButtonStyle}"
+                                Click="NavRadioButton_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="1">
+                        <Border Height="1" BorderThickness="0" HorizontalAlignment="Stretch" Opacity=".2" Background="White"/>
+                        <ListViewItem Visibility="Visible" Height="48" Padding="0" Margin="0" Foreground="White" HorizontalAlignment="Stretch" Style="{StaticResource NavListViewItemStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <SymbolIcon Symbol="Contact" Width="48" Height="48"/>
+                                <TextBlock Text="Account" FontSize="16" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ListViewItem>
+                        <RadioButton 
+                            Content="Settings"
+                            Tag="&#xE713;" 
+                            GroupName="Nav"
+                            Style="{StaticResource NavRadioButtonStyle}"
+                            Click="NavRadioButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </SplitView.Pane>
+            <SplitView.Content>
+                <Grid>
+                    <Frame x:Name="MainFrame" Margin="0,-48,0,0" SourcePageType="local:WeatherPage"/>
+                </Grid>
+            </SplitView.Content>
+        </SplitView>
+
+        <Button
+            Content="&#xE700;"
+            FontFamily="Segoe MDL2 Assets"
+            FontSize="16"
+            Foreground="White"
+            Background="#ff404040"
+            Width="48"
+            Height="48"
+            BorderThickness="0"
+            VerticalAlignment="Top"
+            Click="HamburgerButton_Click"/>
+    </Grid>
+</Page>
